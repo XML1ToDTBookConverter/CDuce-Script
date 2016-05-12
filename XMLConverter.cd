@@ -431,3 +431,16 @@ type head =
 type dtbook =
        <dtbook dir=?("ltr" | "rtl") xml:lang=?String xmlns="http://www.daisy.org/z3986/2005/dtbook/" version="2005-3">[
           (head book) ];;
+		  
+type imggroupadobe =
+		
+		  
+type tableadobe =
+		
+
+type contentadobe =
+		(<P> String | imggroupadobe | tableadobe | <Caption> String);;
+
+type input =
+		<TaggedPDF-doc>[
+			<x:xmpmeta> Any (<H1> String (contentadobe |(<H2> String (contentadobe | (<H3> String (contentadobe | (<H4> String (contentadobe | (<H5> String (contentadobe | (<H6> String (contentadobe)*))*))*))*))*))*)*];; 
