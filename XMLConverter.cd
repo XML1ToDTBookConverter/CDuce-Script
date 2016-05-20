@@ -466,7 +466,7 @@ type l2 =
 		[(contentadobe | (h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))*];;
 		
 type l1 =
-		[(h1 (contentadobe |(h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))+)+];;
+		[(h1 l2*)*];;
 
 let fun transformation_imgdata (imagedata -> img) <imagedata src=s>[] ->
 	<img alt="Image manquante" src=s>[] ;;
@@ -554,12 +554,13 @@ let fun transformation_level2 (l : l2) : [((p | imggroup | table | note)|(level2
 	| [(h2 & c) (next :: (Any\<h2 ..>_))* ; rest ] -> [ <level2>[ c !(transformation_level3 next) ] ] @ (transformation_level2 rest)
 	;;
 	
-let fun transformation_level1 (l : l1) : [((level1))] =
+let fun transformation_level1 (l : l1) : [(level1+)] =
 	match l with
-	| [(<h1 ..>Any & titre) (next :: l2)* ; rest ] -> [ <level1>[ titre !(transformation_level2 next) ] ] @ (transformation_level1 rest)
+	| [] -> raise "erreur"
+	| [(<h1 ..>Any & titre) (next :: l2)* ; rest ] -> [ <level1>[ titre !(transformation_level2 (flatten next)) ] ] @ (transformation_level1 rest)
 	;;
 	
 let fun transformation_to_dtbook (l : input) : dtbook =
 	match l with
-	| [Any* (<taggedpdf-doc>[_* (x::l1)])] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>[(transformation_level1 x)] ] ]
+	| [Any* (<taggedpdf-doc>[_* (x::l1)])] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>(transformation_level1 (flatten x)) ] ]
 	;;
