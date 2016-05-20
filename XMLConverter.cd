@@ -564,3 +564,9 @@ let fun transformation_to_dtbook (l : input) : dtbook =
 	match l with
 	| [Any* (<taggedpdf-doc>[_* (x::l1)])] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>(transformation_level1 (flatten x)) ] ]
 	;;
+	
+let livre : input = 
+	match load_html "file://C:/Users/Vern/Desktop/frxml.xml" with
+	| x & input -> x
+	| _ -> raise "le fichier n'est pas au bon format"
+	;;
