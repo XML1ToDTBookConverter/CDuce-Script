@@ -111,7 +111,7 @@ type p =
           ];;
 type imggroup =
        <imggroup showin=?("xxx" | "xxp" | "xlx" | "xlp" | "bxx" | "bxp" | "blx" | "blp") smilref=?String dir=?("ltr" | "rtl") xml:lang=?String xml:space=?("default" | "preserve") title=?String class=?String id=?String >[
-          (prodnote | img | caption | pagenum)+ ];;
+          (prodnote | img | caption | pagenum)* ];;
 type img =
        <img width=?String height=?String longdesc=?String alt=String src=String showin=?("xxx" | "xxp" | "xlx" | "xlp" | "bxx" | "bxp" | "blx" | "blp") smilref=?String dir=?("ltr" | "rtl") xml:lang=?String xml:space=?("default" | "preserve") title=?String class=?String id=?String >[
            ];;
@@ -273,7 +273,7 @@ type level6 =
              | div | blockquote | img | imggroup | poem | linegroup | byline
              | dateline | epigraph | table | address | line | author
              | prodnote | sidebar | note | annotation | a | cite | samp | kbd
-             | pagenum)+)
+             | pagenum)*)
            | ((doctitle | docauthor | covertitle | bridgehead | p | list | dl
                | div | blockquote | img | imggroup | poem | linegroup
                | byline | dateline | epigraph | table | address | line
@@ -284,7 +284,7 @@ type level6 =
                 | dl | div | blockquote | img | imggroup | poem | linegroup
                 | byline | dateline | epigraph | table | address | line
                 | author | prodnote | sidebar | note | annotation | a | cite
-                | samp | kbd | pagenum)+)?))
+                | samp | kbd | pagenum)*)?))
           ];;
 type level5 =
        <level5 showin=?("xxx" | "xxp" | "xlx" | "xlp" | "bxx" | "bxp" | "blx" | "blp") smilref=?String dir=?("ltr" | "rtl") xml:lang=?String xml:space=?("default" | "preserve") title=?String class=?String id=?String >[
@@ -293,7 +293,7 @@ type level5 =
              | div | blockquote | img | imggroup | poem | linegroup | byline
              | dateline | epigraph | table | address | line | author
              | prodnote | sidebar | note | annotation | a | cite | samp | kbd
-             | pagenum | level6)+)
+             | pagenum | level6)*)
            | ((doctitle | docauthor | covertitle | bridgehead | p | list | dl
                | div | blockquote | img | imggroup | poem | linegroup
                | byline | dateline | epigraph | table | address | line
@@ -313,7 +313,7 @@ type level4 =
              | div | blockquote | img | imggroup | poem | linegroup | byline
              | dateline | epigraph | table | address | line | author
              | prodnote | sidebar | note | annotation | a | cite | samp | kbd
-             | pagenum | level5)+)
+             | pagenum | level5)*)
            | ((doctitle | docauthor | covertitle | bridgehead | p | list | dl
                | div | blockquote | img | imggroup | poem | linegroup
                | byline | dateline | epigraph | table | address | line
@@ -333,7 +333,7 @@ type level3 =
              | div | blockquote | img | imggroup | poem | linegroup | byline
              | dateline | epigraph | table | address | line | author
              | prodnote | sidebar | note | annotation | a | cite | samp | kbd
-             | pagenum | level4)+)
+             | pagenum | level4)*)
            | ((doctitle | docauthor | covertitle | bridgehead | p | list | dl
                | div | blockquote | img | imggroup | poem | linegroup
                | byline | dateline | epigraph | table | address | line
@@ -353,7 +353,7 @@ type level2 =
              | div | blockquote | img | imggroup | poem | linegroup | byline
              | dateline | epigraph | table | address | line | author
              | prodnote | sidebar | note | annotation | a | cite | samp | kbd
-             | pagenum | level3)+)
+             | pagenum | level3)*)
            | ((doctitle | docauthor | covertitle | bridgehead | p | list | dl
                | div | blockquote | img | imggroup | poem | linegroup
                | byline | dateline | epigraph | table | address | line
@@ -373,7 +373,7 @@ type level1 =
              | div | blockquote | img | imggroup | poem | linegroup | byline
              | dateline | epigraph | table | address | line | author
              | prodnote | sidebar | note | annotation | a | cite | samp | kbd
-             | pagenum | level2)+)
+             | pagenum | level2)*)
            | ((doctitle | docauthor | covertitle | bridgehead | p | list | dl
                | div | blockquote | img | imggroup | poem | linegroup
                | byline | dateline | epigraph | table | address | line
@@ -430,16 +430,136 @@ type head =
 type dtbook =
        <dtbook dir=?("ltr" | "rtl") xml:lang=?String xmlns="http://www.daisy.org/z3986/2005/dtbook/" version="2005-3">[
           (head book) ];;
-		  
+
+type imagedata =
+		<imagedata src=String >[]
+
 type imggroupadobe =
-		
+		<figure>[(imagedata | caption)+];;
 		  
-type tableadobe =
-		
+type sect =
+		<sect>[table];;
 
 type contentadobe =
-		(<p> String | imggroupadobe | tableadobe | <caption> String);;
+		(p | imggroupadobe | table | sect | caption) ;;
+
+type taggedpdf =
+		<taggedpdf-doc>[
+			Any* l1];; 
 
 type input =
-		<taggedpdf-doc>[
-			Any* (h1 (contentadobe |(h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))+)+];; 
+		[ Any* taggedpdf ];;
+		
+type l6 =
+		[(contentadobe | (h6 contentadobe+))*];;
+
+type l5 =
+		[(contentadobe | (h5 (contentadobe | (h6 (contentadobe)+))+))*];;
+
+type l4 =
+		[(contentadobe | (h4 (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))*];;
+		
+type l3 =
+		[(contentadobe | (h3 (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))*];;
+		
+type l2 =
+		[(contentadobe | (h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))*];;
+		
+type l1 =
+		[(h1 (contentadobe |(h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))+)];;
+
+let fun transformation_imgdata (imagedata -> img) <imagedata src=s>[] ->
+	<img alt="Image manquante" src=s>[] ;;
+	
+let fun transformation_imgdatasvg (imagedata -> img) <imagedata src=s>[] ->
+	let m = "SVG" @ s @ ".svg" in
+	<img alt="Image manquante" src=m>[] ;;
+	
+let fun transformation_imgdatastl (imagedata -> img) <imagedata src=s>[] ->
+	let m = "STL" @ s @ ".stl" in
+	<img alt="Image manquante" src=m>[] ;;
+
+let fun transformation_imggroupadobe (imggroupadobe -> imggroup) <figure>[((i::imagedata)+|(c::caption)*)+] ->
+	let it = transform i with x & imagedata -> [(transformation_imgdata x) (transformation_imgdatastl x) (transformation_imgdatasvg x)] in
+	<imggroup>[ !it !c ] ;;
+
+let fun transformation_sect (l : sect) : table =
+	match l with
+	| <sect>[x] -> x ;;
+
+let fun transformation_caption (caption -> note) <caption ..>[n::Char* _*] -> <note id=n>[<p>[!n]] ;;
+
+let fun transformation_contentadobe (g : [ contentadobe* ]) : [(p | imggroup | table | note)*] =
+	match g with
+	| [] -> []
+	| (p & x, rest) -> (x, transformation_contentadobe rest)
+	| (table & x, rest) -> (x, transformation_contentadobe rest)
+	| (imggroupadobe & x, rest) -> (transformation_imggroupadobe x, transformation_contentadobe rest)
+	| (sect & x, rest) -> (transformation_sect x, transformation_contentadobe rest)
+	| (caption & x, rest) -> (transformation_caption x, transformation_contentadobe rest)
+	;;
+
+let fun transformation_level6 (l : l6) : [((p | imggroup | table | note)|(level6))*] =
+	match l with
+	| [] -> []
+	| (p & x, rest) -> (x, transformation_level6 rest)
+	| (table & x, rest) -> (x, transformation_level6 rest)
+	| (imggroupadobe & x, rest) -> (transformation_imggroupadobe x, transformation_level6 rest)
+	| (sect & x, rest) -> (transformation_sect x, transformation_level6 rest)
+	| (caption & x, rest) -> (transformation_caption x, transformation_level6 rest)
+	| [(h6 & c) (next :: (Any\<h6 ..>_))* ; rest ] -> [ <level6>[ c !(transformation_contentadobe next) ] ] @ (transformation_level6 rest)
+	;;
+
+let fun transformation_level5 (l : l5) : [((p | imggroup | table | note)|(level5))*] =
+	match l with
+	| [] -> []
+	| (p & x, rest) -> (x, transformation_level5 rest)
+	| (table & x, rest) -> (x, transformation_level5 rest)
+	| (imggroupadobe & x, rest) -> (transformation_imggroupadobe x, transformation_level5 rest)
+	| (sect & x, rest) -> (transformation_sect x, transformation_level5 rest)
+	| (caption & x, rest) -> (transformation_caption x, transformation_level5 rest)
+	| [(h5 & c) (next :: (Any\<h5 ..>_))* ; rest ] -> [ <level5>[ c !(transformation_level6 next) ] ] @ (transformation_level5 rest)
+	;;
+
+let fun transformation_level4 (l : l4) : [((p | imggroup | table | note)|(level4))*] =
+	match l with
+	| [] -> []
+	| (p & x, rest) -> (x, transformation_level4 rest)
+	| (table & x, rest) -> (x, transformation_level4 rest)
+	| (imggroupadobe & x, rest) -> (transformation_imggroupadobe x, transformation_level4 rest)
+	| (sect & x, rest) -> (transformation_sect x, transformation_level4 rest)
+	| (caption & x, rest) -> (transformation_caption x, transformation_level4 rest)
+	| [(h4 & c) (next :: (Any\<h4 ..>_))* ; rest ] -> [ <level4>[ c !(transformation_level5 next) ] ] @ (transformation_level4 rest)
+	;;
+	
+let fun transformation_level3 (l : l3) : [((p | imggroup | table | note)|(level3))*] =
+	match l with
+	| [] -> []
+	| (p & x, rest) -> (x, transformation_level3 rest)
+	| (table & x, rest) -> (x, transformation_level3 rest)
+	| (imggroupadobe & x, rest) -> (transformation_imggroupadobe x, transformation_level3 rest)
+	| (sect & x, rest) -> (transformation_sect x, transformation_level3 rest)
+	| (caption & x, rest) -> (transformation_caption x, transformation_level3 rest)
+	| [(h3 & c) (next :: (Any\<h3 ..>_))* ; rest ] -> [ <level3>[ c !(transformation_level4 next) ] ] @ (transformation_level3 rest)
+	;;
+	
+let fun transformation_level2 (l : l2) : [((p | imggroup | table | note)|(level2))*] =
+	match l with
+	| [] -> []
+	| (p & x, rest) -> (x, transformation_level2 rest)
+	| (table & x, rest) -> (x, transformation_level2 rest)
+	| (imggroupadobe & x, rest) -> (transformation_imggroupadobe x, transformation_level2 rest)
+	| (sect & x, rest) -> (transformation_sect x, transformation_level2 rest)
+	| (caption & x, rest) -> (transformation_caption x, transformation_level2 rest)
+	| [(h2 & c) (next :: (Any\<h2 ..>_))* ; rest ] -> [ <level2>[ c !(transformation_level3 next) ] ] @ (transformation_level2 rest)
+	;;
+	
+let fun transformation_level1 (l : l1) : [((level1))] =
+	match l with
+	| [(h1 & c) (next :: (l1\<h1 ..>_))* ; rest ] -> [ <level1>[ c !(transformation_level2 next) ] ] @ (transformation_level1 rest)
+	;;
+	
+let fun transformation_to_dtbook (l : input) : dtbook =
+	match l with
+	| [Any* (<taggedpdf-doc>[_* (x::((h1 (contentadobe |(h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))+))*)*])] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>[(transformation_level1 x)] ] ]
+	;;
