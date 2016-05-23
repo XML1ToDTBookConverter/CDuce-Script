@@ -556,23 +556,20 @@ let fun transformation_level2 (l : l2) : [((p | imggroup | table | note)|(level2
 	
 let fun transformation_level1 (l : l1) : [(level1+)] =
 	match l with
-	| [] -> raise "erreur de contenu"
+	| [] -> raise "erreur"
 	| [(<h1 ..>Any & titre) (next :: l2)* ; rest ] -> [ <level1>[ titre !(transformation_level2 (flatten next)) ] ] @ (transformation_level1 rest)
 	;;
 	
-let	fun transformation_start (l : [Any*]) : [(level1+)] =
-	match l with
-	
 let fun transformation_to_dtbook (l : input) : dtbook =
 	match l with
-	| [<taggedpdf-doc>[(x::Any)*]] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>(transformation_start x) ] ]
+	| [<taggedpdf-doc>[_ (x::l1)*]] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>(transformation_level1 (flatten x)) ] ]
 	| x -> raise x
 	;;
 	
 let livre : input = 
 	match load_html (flatten (argv [])) with
 	| x & input -> x
-	| _ -> raise "erreur de format"
+	| _ -> raise "erreur"
 	;;
 	
 let livreb : dtbook = transformation_to_dtbook livre;;
