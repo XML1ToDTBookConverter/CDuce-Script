@@ -411,7 +411,7 @@ type rearmatter =
           (level | level1)+ ];;
 type bodymatter =
        <bodymatter showin=?("xxx" | "xxp" | "xlx" | "xlp" | "bxx" | "bxp" | "blx" | "blp") smilref=?String dir=?("ltr" | "rtl") xml:lang=?String xml:space=?("default" | "preserve") title=?String class=?String id=?String >[
-          (level | level1)+ ];;
+          (level | level1)* ];;
 type frontmatter =
        <frontmatter showin=?("xxx" | "xxp" | "xlx" | "xlp" | "bxx" | "bxp" | "blx" | "blp") smilref=?String dir=?("ltr" | "rtl") xml:lang=?String xml:space=?("default" | "preserve") title=?String class=?String id=?String >[
           (doctitle covertitle? docauthor* (level | level1)*) ];;
@@ -435,7 +435,7 @@ type imagedata =
 		<imagedata src=String >[]
 
 type imggroupadobe =
-		<figure>[(imagedata | caption)+];;
+		<figure>[(imagedata | caption | Char)+];;
 		  
 type sect =
 		<sect>[table];;
@@ -444,29 +444,28 @@ type contentadobe =
 		(p | imggroupadobe | table | sect | caption ) ;;
 
 type taggedpdf =
-		<taggedpdf-doc ..>[
-			 Any* l1];; 
+		<taggedpdf-doc ..>l1;; 
 
 type input =
-		[ (taggedpdf Any | Any)*];;
+		[ taggedpdf? ];;
 		
 type l6 =
-		[(contentadobe | (h6 contentadobe+))*];;
+		[(contentadobe | (h6 contentadobe*))*];;
 
 type l5 =
-		[(contentadobe | (h5 (contentadobe | (h6 (contentadobe)+))+))*];;
+		[(contentadobe | (h5 (contentadobe | (h6 contentadobe*))*))*];;
 
 type l4 =
-		[(contentadobe | (h4 (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))*];;
+		[(contentadobe | (h4 (contentadobe | (h5 (contentadobe | (h6 contentadobe*))*))*))*];;
 		
 type l3 =
-		[(contentadobe | (h3 (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))*];;
+		[(contentadobe | (h3 (contentadobe | (h4 (contentadobe | (h5 (contentadobe | (h6 contentadobe*))*))*))*))*];;
 		
 type l2 =
-		[(contentadobe | (h2 (contentadobe | (h3  (contentadobe | (h4  (contentadobe | (h5  (contentadobe | (h6 (contentadobe)+))+))+))+))+))*];;
+		[(contentadobe | (h2 (contentadobe | (h3 (contentadobe | (h4 (contentadobe | (h5 (contentadobe | (h6 contentadobe*))*))*))*))*))*];;
 		
 type l1 =
-		[(h1 l2*)*];;
+		[(h1 (contentadobe | (h2 (contentadobe | (h3 (contentadobe | (h4 (contentadobe | (h5 (contentadobe | (h6 contentadobe*))*))*))*))*))*)*];;
 
 let fun transformation_imgdata (imagedata -> img) <imagedata src=s>[] ->
 	<img alt="Image manquante" src=s>[] ;;
@@ -479,9 +478,9 @@ let fun transformation_imgdatastl (imagedata -> img) <imagedata src=s>[] ->
 	let m = "STL" @ s @ ".stl" in
 	<img alt="Image manquante" src=m>[] ;;
 
-let fun transformation_imggroupadobe (imggroupadobe -> imggroup) <figure>[((i::imagedata)+|(c::caption)*)+] ->
+let fun transformation_imggroupadobe (imggroupadobe -> imggroup) <figure>[((i::imagedata)+|(c::caption)*|(s::Char*))+] ->
 	let it = transform i with x & imagedata -> [(transformation_imgdata x) (transformation_imgdatastl x) (transformation_imgdatasvg x)] in
-	<imggroup>[ !it !c ] ;;
+	<imggroup>[ !it !c <caption>[!s]] ;;
 
 let fun transformation_sect (l : sect) : table =
 	match l with
@@ -554,21 +553,26 @@ let fun transformation_level2 (l : l2) : [((p | imggroup | table | note)|(level2
 	| [(h2 & c) (next :: (Any\<h2 ..>_))* ; rest ] -> [ <level2>[ c !(transformation_level3 next) ] ] @ (transformation_level2 rest)
 	;;
 	
-let fun transformation_level1 (l : l1) : [(level1+)] =
+let fun transformation_level1 (l : taggedpdf) : [(level1*)] =
 	match l with
-	| [(<h1 ..>Any & titre) (next :: l2)* ; rest ] -> [ <level1>[ titre !(transformation_level2 (flatten next)) ] ] @ (transformation_level1 rest)
-	| [] -> raise "erreur 1"
+	| <taggedpdf-doc ..>[(h1 & titre) (next :: (Any\<h1 ..>_))* ; rest ] -> [ <level1>[ titre !(transformation_level2 next) ] ] @ (transformation_level1 <taggedpdf-doc>rest)
+	| <taggedpdf-doc ..>[_*] -> []
 	;;
+	
+
 	
 let fun transformation_to_dtbook (l : input) : dtbook =
 	match l with
-	| [<taggedpdf-doc ..>[((x::l1)* | _*)]] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>(transformation_level1 (flatten x)) ] ]
-	| x -> raise x
+	| [(x & taggedpdf)] -> <dtbook version="2005-3" xmlns="http://www.daisy.org/z3986/2005/dtbook/">[<head>[] <book>[<bodymatter>(transformation_level1 x) ] ]
+	| [] -> raise "document vide"
 	;;
 	
 let livre : input = 
 	match load_html (flatten (argv [])) with
 	| x & input -> x
+	| _ -> raise "mauvais type de fichier"
 	;;
 	
 let livreb : dtbook = transformation_to_dtbook livre;;
+
+let [] = print (print_xml livreb);;
